@@ -147,7 +147,7 @@ function test_geometry($geometry) {
 function testAdapters($geometry, $format, $input) {
   // Test adapter output and input. Do a round-trip and re-test
   foreach (geoPHP::getAdapterMap() as $adapter_key => $adapter_class) {
-    if ($adapter_key == 'google_geocode') {
+    if ($adapter_key === 'google_geocode') {
       //Don't test google geocoder regularily. Uncomment to test
       continue;
     }
@@ -178,7 +178,7 @@ function testAdapters($geometry, $format, $input) {
     echo "Testing with GEOS\n";
   }
   foreach (geoPHP::getAdapterMap() as $adapter_key => $adapter_class) {
-    if ($adapter_key == 'google_geocode') {
+    if ($adapter_key === 'google_geocode') {
       //Don't test google geocoder regularily. Uncomment to test
       continue;
     }
@@ -276,13 +276,13 @@ function testGeosMethods($geometry) {
       }
 
       // Now check base on type
-      if ($geos_type == 'object') {
+      if ($geos_type === 'object') {
         $haus_dist = $geos_result->hausdorffDistance(geoPHP::load($norm_result->out('wkt'),'wkt'));
 
         // Get the length of the diagonal of the bbox - this is used to scale the haustorff distance
         // Using Pythagorean theorem
         $bb = $geos_result->getBoundingBox();
-        $scale = sqrt((($bb['maxy'] - $bb['miny'])^2) + (($bb['maxx'] - $bb['minx'])^2));
+        $scale = sqrt(((int)($bb['maxy'] - $bb['miny'])^2) + ((int)($bb['maxx'] - $bb['minx'])^2));
 
         // The difference in the output of GEOS and native-PHP methods should be less than 0.5 scaled haustorff units
         if ($haus_dist / $scale > 0.5) {
@@ -293,7 +293,7 @@ function testGeosMethods($geometry) {
         }
       }
 
-      if ($geos_type == 'boolean' || $geos_type == 'string') {
+      if ($geos_type === 'boolean' || $geos_type === 'string') {
         if ($geos_result !== $norm_result) {
           print "\e[33m" . "Output mismatch on " . $method . "\e[39m\n";
           print 'GEOS : '.(string) $geos_result."\n";
@@ -325,7 +325,7 @@ function testDetection($value, $format) {
   geoPHP::load($value);
 }
 
-function FailOnError($error_level, $error_message, $error_file, $error_line, $error_context) {
+function FailOnError($error_level, $error_message, $error_file, $error_line) {
   echo "$error_level: $error_message in $error_file on line $error_line\n";
   echo "\e[31m" . "FAIL" . "\e[39m\n";
   exit(1);

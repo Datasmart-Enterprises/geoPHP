@@ -144,7 +144,7 @@ class LineStringTest extends TestCase
 
         $this->assertNull($line->pointN(0));
 
-        for ($i=1; $i < count($components); $i++) {
+        for ($i=1, $iMax = count($components); $i < $iMax; $i++) {
             // positive n
             $this->assertEquals($components[$i-1], $line->pointN($i));
 
