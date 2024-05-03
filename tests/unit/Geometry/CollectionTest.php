@@ -9,10 +9,13 @@
 
 namespace geoPHP\Tests\Geometry;
 
-use \geoPHP\Geometry\Collection;
-use \geoPHP\Geometry\Point;
-use \geoPHP\Geometry\LineString;
-use \PHPUnit\Framework\TestCase;
+use geoPHP\Geometry\Collection;
+use geoPHP\Geometry\Point;
+use geoPHP\Geometry\LineString;
+use geoPHP\Geometry\Polygon;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\MockObject\Exception;
+use PHPUnit\Framework\TestCase;
 
 /**
  * This class... TODO: Complete this
@@ -20,7 +23,10 @@ use \PHPUnit\Framework\TestCase;
 class CollectionTest extends TestCase
 {
 
-    public function providerIs3D()
+    /**
+     * @throws \Exception
+     */
+    public static function providerIs3D(): array
     {
         return [
                 [[new Point(1, 2)], false],
@@ -30,20 +36,24 @@ class CollectionTest extends TestCase
     }
 
     /**
-     * @dataProvider providerIs3D
      *
      * @param Point[] $components
-     * @param bool    $result
+     * @param bool $result
+     * @throws Exception
+     * @throws Exception
      */
-    public function testIs3D($components, $result)
+    #[DataProvider('providerIs3D')]
+    public function testIs3D(array $components, bool $result): void
     {
         /** @var Collection $stub */
         $stub = $this->getMockForAbstractClass(Collection::class, [$components, true]);
-
         $this->assertEquals($stub->is3D(), $result);
     }
 
-    public function providerIsMeasured()
+    /**
+     * @throws \Exception
+     */
+    public static function providerIsMeasured(): array
     {
         return [
                 [[new Point()], false],
@@ -55,20 +65,23 @@ class CollectionTest extends TestCase
     }
 
     /**
-     * @dataProvider providerIsMeasured
-     *
      * @param Point[] $components
-     * @param bool    $result
+     * @param bool $result
+     * @throws Exception
+     * @throws Exception
      */
-    public function testIsMeasured($components, $result)
+    #[DataProvider('providerIsMeasured')]
+    public function testIsMeasured(array $components, bool $result): void
     {
         /** @var Collection $stub */
         $stub = $this->getMockForAbstractClass(Collection::class, [$components, true]);
-
-        $this->assertEquals($stub->isMeasured(), $result);
+        $this->assertEquals($result, $stub->isMeasured());
     }
 
-    public function providerIsEmpty()
+    /**
+     * @throws \Exception
+     */
+    public static function providerIsEmpty(): array
     {
         return [
                 [[], true],
@@ -78,12 +91,10 @@ class CollectionTest extends TestCase
     }
 
     /**
-     * @dataProvider providerIsEmpty
-     *
-     * @param Point[] $components
-     * @param bool    $result
+     * @throws Exception
      */
-    public function testIsEmpty($components, $result)
+    #[DataProvider('providerIsEmpty')]
+    public function testIsEmpty(array $components, bool $result): void
     {
         /** @var Collection $stub */
         $stub = $this->getMockForAbstractClass(Collection::class, [$components, true]);
@@ -91,7 +102,10 @@ class CollectionTest extends TestCase
         $this->assertEquals($stub->isEmpty(), $result);
     }
 
-    public function testNonApplicableMethods()
+    /**
+     * @throws Exception
+     */
+    public function testNonApplicableMethods(): void
     {
         /** @var Collection $stub */
         $stub = $this->getMockForAbstractClass(Collection::class, [[], true]);
@@ -102,7 +116,11 @@ class CollectionTest extends TestCase
         $this->assertNull($stub->m());
     }
 
-    public function testAsArray()
+    /**
+     * @throws Exception
+     * @throws \Exception
+     */
+    public function testAsArray(): void
     {
         $components = [
                 new Point(1, 2),
@@ -119,7 +137,11 @@ class CollectionTest extends TestCase
         $this->assertEquals($stub->asArray(), $expected);
     }
 
-    public function testFlatten()
+    /**
+     * @throws Exception
+     * @throws \Exception
+     */
+    public function testFlatten(): void
     {
         $components = [
                 new Point(1, 2, 3, 4),
@@ -136,11 +158,15 @@ class CollectionTest extends TestCase
         $this->assertFalse($stub->getPoints()[0]->hasZ());
     }
 
-    public function testExplode()
+    /**
+     * @throws Exception
+     * @throws \Exception
+     */
+    public function testExplode(): void
     {
         $points = [new Point(1, 2), new Point(3, 4), new Point(5, 6), new Point(1, 2)];
         $components = [
-                new \geoPHP\Geometry\Polygon([new LineString($points)])
+                new Polygon([new LineString($points)])
         ];
 
         /** @var Collection $stub */

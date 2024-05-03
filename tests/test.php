@@ -282,7 +282,7 @@ function testGeosMethods($geometry) {
         // Get the length of the diagonal of the bbox - this is used to scale the haustorff distance
         // Using Pythagorean theorem
         $bb = $geos_result->getBoundingBox();
-        $scale = sqrt(((int)($bb['maxy'] - $bb['miny'])^2) + ((int)($bb['maxx'] - $bb['minx'])^2));
+        $scale = sqrt((($bb['maxy'] - $bb['miny'])^2) + (($bb['maxx'] - $bb['minx'])^2));
 
         // The difference in the output of GEOS and native-PHP methods should be less than 0.5 scaled haustorff units
         if ($haus_dist / $scale > 0.5) {

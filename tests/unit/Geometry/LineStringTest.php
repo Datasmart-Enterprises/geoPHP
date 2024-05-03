@@ -2,22 +2,29 @@
 
 namespace geoPHP\Tests\Geometry;
 
+use Exception;
 use geoPHP\Exception\InvalidGeometryException;
+use geoPHP\Geometry\Collection;
+use geoPHP\Geometry\Curve;
 use geoPHP\Geometry\Geometry;
+use geoPHP\Geometry\GeometryCollection;
 use geoPHP\Geometry\LineString;
 use geoPHP\Geometry\Point;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Unit tests of LineString geometry
- *
- * @group geometry
- *
  */
+#[Group('geometry')]
 class LineStringTest extends TestCase
 {
 
-    private function createPoints($coordinateArray)
+    /**
+     * @throws Exception
+     */
+    private function createPoints($coordinateArray): array
     {
         $points = [];
         foreach ($coordinateArray as $point) {
@@ -26,7 +33,7 @@ class LineStringTest extends TestCase
         return $points;
     }
 
-    public function providerValidComponents()
+    public static function providerValidComponents(): array
     {
         return [
             'empty' =>
@@ -45,16 +52,18 @@ class LineStringTest extends TestCase
     }
 
     /**
-     * @dataProvider providerValidComponents
-     *
-     * @param array $points
+     * @throws Exception
      */
-    public function testConstructor($points)
+    #[DataProvider('providerValidComponents')]
+    public function testConstructor(array $points): void
     {
         $this->assertNotNull(new LineString($this->createPoints($points)));
     }
 
-    public function testConstructorEmptyComponentThrowsException()
+    /**
+     * @throws Exception
+     */
+    public function testConstructorEmptyComponentThrowsException(): void
     {
         $this->expectException(InvalidGeometryException::class);
         $this->expectExceptionMessageMatches('/Cannot create a collection of empty Points.+/');
@@ -63,7 +72,7 @@ class LineStringTest extends TestCase
         new LineString([new Point(), new Point(), new Point()]);
     }
 
-    public function testConstructorNonArrayComponentThrowsException()
+    public function testConstructorNonArrayComponentThrowsException(): void
     {
         $this->expectException(InvalidGeometryException::class);
         $this->expectExceptionMessageMatches('/Component geometries must be passed as array/');
@@ -71,7 +80,10 @@ class LineStringTest extends TestCase
         new LineString('foo');
     }
 
-    public function testConstructorSinglePointThrowsException()
+    /**
+     * @throws Exception
+     */
+    public function testConstructorSinglePointThrowsException(): void
     {
         $this->expectException(InvalidGeometryException::class);
         $this->expectExceptionMessageMatches('/Cannot construct a [a-zA-Z_\\\\]+LineString with a single point/');
@@ -79,7 +91,10 @@ class LineStringTest extends TestCase
         new LineString([new Point(1, 2)]);
     }
 
-    public function testConstructorWrongComponentTypeThrowsException()
+    /**
+     * @throws Exception
+     */
+    public function testConstructorWrongComponentTypeThrowsException(): void
     {
         $this->expectException(InvalidGeometryException::class);
         $this->expectExceptionMessageMatches('/Cannot create a collection of [a-zA-Z_\\\\]+ components, expected type is.+/');
@@ -87,7 +102,10 @@ class LineStringTest extends TestCase
         new LineString([new LineString(), new LineString()]);
     }
 
-    public function testFromArray()
+    /**
+     * @throws Exception
+     */
+    public function testFromArray(): void
     {
         $this->assertEquals(
                 LineString::fromArray([[1,2,3,4], [5,6,7,8]]),
@@ -95,19 +113,22 @@ class LineStringTest extends TestCase
         );
     }
 
-    public function testGeometryType()
+    public function testGeometryType(): void
     {
         $line = new LineString();
 
-        $this->assertEquals(LineString::LINE_STRING, $line->geometryType());
+        $this->assertEquals(Geometry::LINE_STRING, $line->geometryType());
 
         $this->assertInstanceOf(LineString::class, $line);
-        $this->assertInstanceOf(\geoPHP\Geometry\Curve::class, $line);
-        $this->assertInstanceOf(\geoPHP\Geometry\Collection::class, $line);
-        $this->assertInstanceOf(\geoPHP\Geometry\Geometry::class, $line);
+        $this->assertInstanceOf(Curve::class, $line);
+        $this->assertInstanceOf(Collection::class, $line);
+        $this->assertInstanceOf(Geometry::class, $line);
     }
 
-    public function testIsEmpty()
+    /**
+     * @throws Exception
+     */
+    public function testIsEmpty(): void
     {
         $line1 = new LineString();
         $this->assertTrue($line1->isEmpty());
@@ -116,28 +137,28 @@ class LineStringTest extends TestCase
         $this->assertFalse($line2->isEmpty());
     }
 
-    public function testDimension()
+    public function testDimension(): void
     {
         $this->assertSame((new LineString())->dimension(), 1);
     }
 
     /**
-     * @dataProvider providerValidComponents
-     *
-     * @param array $points
+     * @throws Exception
+     * @throws Exception
      */
-    public function testNumPoints($points)
+    #[DataProvider('providerValidComponents')]
+    public function testNumPoints(array $points): void
     {
         $line = new LineString($this->createPoints($points));
         $this->assertCount($line->numPoints(), $points);
     }
 
     /**
-     * @dataProvider providerValidComponents
-     *
-     * @param array $points
-     */    
-    public function testPointN($points)
+     * @throws Exception
+     * @throws Exception
+     */
+    #[DataProvider('providerValidComponents')]
+    public function testPointN(array $points): void
     {
         $components = $this->createPoints($points);
         $line = new LineString($components);
@@ -153,7 +174,10 @@ class LineStringTest extends TestCase
         }
     }
 
-    public function providerCentroid()
+    /**
+     * @throws Exception
+     */
+    public static function providerCentroid(): array
     {
         return [
             'empty LineString' => [[], new Point()],
@@ -168,18 +192,16 @@ class LineStringTest extends TestCase
                     [42.5390625, 41.77131167976407],
                     [-13.359375, 38.8225909761771],
                     [18.984375, 17.644022027872726]
-            ], new Point(8.71798087550578, 31.1304531386738)],
+            ], new Point(8.717980875505775, 31.130453138673776)],
             'crossing the antimeridian' => [[[170, 47], [-170, 47]], new Point(0, 47)]
         ];
     }
 
     /**
-     * @dataProvider providerCentroid
-     *
-     * @param array $points
-     * @param Point $centroidPoint
+     * @throws Exception
      */
-    public function testCentroid($points, $centroidPoint)
+    #[DataProvider('providerCentroid')]
+    public function testCentroid(array $points, Point $centroidPoint): void
     {
         $line = LineString::fromArray($points);
         $centroid = $line->centroid();
@@ -188,7 +210,7 @@ class LineStringTest extends TestCase
         $this->assertEquals($centroidPoint, $centroid);
     }
 
-    public function providerIsSimple()
+    public static function providerIsSimple(): array
     {
         return [
                 'simple' =>
@@ -202,59 +224,56 @@ class LineStringTest extends TestCase
     }
 
     /**
-     * @dataProvider providerIsSimple
-     *
-     * @param array $points
-     * @param bool  $result
+     * @throws Exception
      */
-    public function testIsSimple($points, $result)
+    #[DataProvider('providerIsSimple')]
+    public function testIsSimple(array $points, bool $result): void
     {
         $line = LineString::fromArray($points);
 
         $this->assertSame($line->isSimple(), $result);
     }
 
-    public function providerLength() {
+    public static function providerLength(): array
+    {
         return [
                 [[[0, 0], [10, 0]], 10.0],
-                [[[1, 1], [2, 2], [2, 3.5], [1, 3], [1, 2], [2, 1]], 6.44646111349608],
+                [[[1, 1], [2, 2], [2, 3.5], [1, 3], [1, 2], [2, 1]], 6.446461113496085],
         ];
     }
 
     /**
-     * @dataProvider providerLength
-     *
-     * @param array $points
-     * @param float $result
+     * @throws Exception
      */
-    public function testLength($points, $result)
+    #[DataProvider('providerLength')]
+    public function testLength(array $points, float $result): void
     {
         $line = LineString::fromArray($points);
 
         $this->assertSame($line->length(), $result);
     }
 
-    public function providerLength3D() {
+    public static function providerLength3D(): array
+    {
         return [
-                [[[0, 0, 0], [10, 0, 10]], 14.142135623731],
-                [[[1, 1, 0], [2, 2, 2], [2, 3.5, 0], [1, 3, 2], [1, 2, 0], [2, 1, 2]], 11.926335310544],
+                [[[0, 0, 0], [10, 0, 10]], 14.142135623730951],
+                [[[1, 1, 0], [2, 2, 2], [2, 3.5, 0], [1, 3, 2], [1, 2, 0], [2, 1, 2]], 11.926335310544065],
         ];
     }
 
     /**
-     * @dataProvider providerLength3D
-     *
-     * @param array $points
-     * @param float $result
+     * @throws Exception
      */
-    public function testLength3D($points, $result)
+    #[DataProvider('providerLength3D')]
+    public function testLength3D(array $points, float $result): void
     {
         $line = LineString::fromArray($points);
 
         $this->assertSame($line->length3D(), $result);
     }
 
-    public function providerLengths() {
+    public static function providerLengths(): array
+    {
         return [
                 [[[0, 0], [0, 0]], [
                         'greatCircle' => 0.0,
@@ -296,12 +315,10 @@ class LineStringTest extends TestCase
     }
 
     /**
-     * @dataProvider providerLengths
-     *
-     * @param array $points
-     * @param array $results
+     * @throws Exception
      */
-    public function testGreatCircleLength($points, $results)
+    #[DataProvider('providerLengths')]
+    public function testGreatCircleLength(array $points, array $results): void
     {
         $line = LineString::fromArray($points);
 
@@ -309,12 +326,10 @@ class LineStringTest extends TestCase
     }
 
     /**
-     * @dataProvider providerLengths
-     *
-     * @param array $points
-     * @param array $results
+     * @throws Exception
      */
-    public function testHaversineLength($points, $results)
+    #[DataProvider('providerLengths')]
+    public function testHaversineLength(array $points, array $results): void
     {
         $line = LineString::fromArray($points);
 
@@ -322,26 +337,30 @@ class LineStringTest extends TestCase
     }
 
     /**
-     * @dataProvider providerLengths
-     *
-     * @param array $points
-     * @param array $results
+     * @throws Exception
      */
-    public function testVincentyLength($points, $results)
+    #[DataProvider('providerLengths')]
+    public function testVincentyLength(array $points, array $results): void
     {
         $line = LineString::fromArray($points);
 
         $this->assertEqualsWithDelta($line->vincentyLength(), $results['vincenty'], 1e-8);
     }
 
-    public function testVincentyLengthAntipodalPoints()
+    /**
+     * @throws Exception
+     */
+    public function testVincentyLengthAntipodalPoints(): void
     {
         $line = LineString::fromArray([[-89.7, 0], [89.7, 0]]);
 
         $this->assertNull($line->vincentyLength());
     }
 
-    public function testExplode()
+    /**
+     * @throws Exception
+     */
+    public function testExplode(): void
     {
         $point1 = new Point(1, 2);
         $point2 = new Point(3, 4);
@@ -357,7 +376,10 @@ class LineStringTest extends TestCase
         $this->assertSame((new LineString())->explode(true), []);
     }
 
-    public function providerDistance()
+    /**
+     * @throws Exception
+     */
+    public static function providerDistance(): array
     {
         return [
             'Point on vertex' =>
@@ -371,25 +393,26 @@ class LineStringTest extends TestCase
             'intersecting line' =>
                 [LineString::fromArray([[-10, 5], [10, 5]]), 0.0],
             'GeometryCollection' =>
-                [new \geoPHP\Geometry\GeometryCollection([LineString::fromArray([[10, 10], [20, 20]])]), 10.0],
+                [new GeometryCollection([LineString::fromArray([[10, 10], [20, 20]])]), 10.0],
             // TODO: test other types
         ];
     }
 
     /**
-     * @dataProvider providerDistance
-     *
-     * @param Geometry $otherGeometry
-     * @param float $expectedDistance
+     * @throws Exception
      */
-    public function testDistance($otherGeometry, $expectedDistance)
+    #[DataProvider('providerDistance')]
+    public function testDistance(Geometry $otherGeometry, float $expectedDistance): void
     {
         $line = LineString::fromArray([[0, 0], [0, 10]]);
 
         $this->assertSame($line->distance($otherGeometry), $expectedDistance);
     }
 
-    public function testMinimumAndMaximumZAndMAndDifference()
+    /**
+     * @throws Exception
+     */
+    public function testMinimumAndMaximumZAndMAndDifference(): void
     {
         $line = LineString::fromArray([[0, 0, 100.0, 0.0], [1, 1, 50.0, -0.5], [2, 2, 150.0, -1.0], [3, 3, 75.0, 0.5]]);
 
@@ -400,13 +423,13 @@ class LineStringTest extends TestCase
         $this->assertSame($line->maximumM(), 0.5);
 
         $this->assertSame($line->zDifference(), 25.0);
-        $this->assertSame(LineString::fromArray([[0, 1], [2, 3]])->zDifference(), null);
+        $this->assertNull(LineString::fromArray([[0, 1], [2, 3]])->zDifference());
     }
 
     /**
      * @return array[] [tolerance, gain, loss]
      */
-    public function providerElevationGainAndLossByTolerance()
+    public static function providerElevationGainAndLossByTolerance(): array
     {
         return [
                 [null, 50.0, 30.0],
@@ -417,13 +440,10 @@ class LineStringTest extends TestCase
     }
 
     /**
-     * @dataProvider providerElevationGainAndLossByTolerance
-     *
-     * @param float|null $tolerance
-     * @param float $gain
-     * @param float $loss
+     * @throws Exception
      */
-    public function testElevationGainAndLoss($tolerance, $gain, $loss)
+    #[DataProvider('providerElevationGainAndLossByTolerance')]
+    public function testElevationGainAndLoss(?float $tolerance, float $gain, float $loss): void
     {
         $line = LineString::fromArray(
                 [[0, 0, 100], [0, 0, 102], [0, 0, 105], [0, 0, 103], [0, 0, 110], [0, 0, 118],

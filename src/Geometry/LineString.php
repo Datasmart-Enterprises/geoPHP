@@ -2,7 +2,7 @@
 
 namespace geoPHP\Geometry;
 
-use geoPHP\Exception\InvalidGeometryException;
+use Exception;
 use geoPHP\geoPHP;
 
 /**
@@ -16,7 +16,7 @@ use geoPHP\geoPHP;
 class LineString extends Curve
 {
 
-    public function geometryType()
+    public function geometryType(): string
     {
         return Geometry::LINE_STRING;
     }
@@ -26,14 +26,17 @@ class LineString extends Curve
      *
      * @param Point[] $points An array of at least two points with
      * which to build the LineString
-     * @throws \Exception
+     * @throws Exception
      */
     public function __construct($points = [])
     {
         parent::__construct($points);
     }
 
-    public static function fromArray($array)
+    /**
+     * @throws Exception
+     */
+    public static function fromArray($array): static
     {
         $points = [];
         foreach ($array as $point) {
@@ -47,7 +50,7 @@ class LineString extends Curve
      *
      * @return int
      */
-    public function numPoints()
+    public function numPoints(): int
     {
         return count($this->components);
     }
@@ -59,19 +62,25 @@ class LineString extends Curve
      * @param int $n Nth point of the LineString
      * @return Point|null
      */
-    public function pointN($n)
+    public function pointN($n): ?Point
     {
         return $n >= 0
                 ? $this->geometryN($n)
                 : $this->geometryN(count($this->components) - abs($n + 1));
     }
 
-    public function centroid()
+    /**
+     * @throws Exception
+     */
+    public function centroid(): GeometryCollection|Geometry|Collection|Point|null
     {
         return $this->getCentroidAndLength();
     }
 
-    public function getCentroidAndLength(&$length = 0.0)
+    /**
+     * @throws Exception
+     */
+    public function getCentroidAndLength(&$length = 0.0): GeometryCollection|Geometry|Collection|Point|null
     {
         if ($this->isEmpty()) {
             return new Point();
@@ -79,7 +88,6 @@ class LineString extends Curve
 
         if ($this->getGeos()) {
             // @codeCoverageIgnoreStart
-            /** @noinspection PhpUndefinedMethodInspection */
             return geoPHP::geosToGeometry($this->getGeos()->centroid());
             // @codeCoverageIgnoreEnd
         }
@@ -111,13 +119,13 @@ class LineString extends Curve
     /**
      *  Returns the length of this Curve in its associated spatial reference.
      * Eg. if Geometry is in geographical coordinate system it returns the length in degrees
-     * @return float|int
+     * @return float
+     * @throws Exception
      */
-    public function length()
+    public function length(): float
     {
         if ($this->getGeos()) {
             // @codeCoverageIgnoreStart
-            /** @noinspection PhpUndefinedMethodInspection */
             return $this->getGeos()->length();
             // @codeCoverageIgnoreEnd
         }
@@ -127,8 +135,8 @@ class LineString extends Curve
         foreach ($this->getPoints() as $point) {
             if ($previousPoint) {
                 $length += sqrt(
-                    pow(($previousPoint->x() - $point->x()), 2) +
-                        pow(($previousPoint->y() - $point->y()), 2)
+                    (($previousPoint->x() - $point->x()) ** 2) +
+                    (($previousPoint->y() - $point->y()) ** 2)
                 );
             }
             $previousPoint = $point;
@@ -136,7 +144,7 @@ class LineString extends Curve
         return $length;
     }
 
-    public function length3D()
+    public function length3D(): float
     {
         $length = 0.0;
         /** @var Point $previousPoint */
@@ -155,10 +163,10 @@ class LineString extends Curve
     }
 
     /**
-     * @param float|null $radius Earth radius
-     * @return float Length in meters
+     * @param float $radius Earth radius
+     * @return float|int Length in meters
      */
-    public function greatCircleLength($radius = geoPHP::EARTH_WGS84_SEMI_MAJOR_AXIS)
+    public function greatCircleLength($radius = geoPHP::EARTH_WGS84_SEMI_MAJOR_AXIS): float|int
     {
         $length = 0.0;
         $rad = M_PI / 180;
@@ -195,9 +203,9 @@ class LineString extends Curve
     }
 
     /**
-     * @return float Haversine length of geometry in degrees
+     * @return float|int Haversine length of geometry in degrees
      */
-    public function haversineLength()
+    public function haversineLength(): float|int
     {
         $distance = 0.0;
         $points = $this->getPoints();
@@ -221,13 +229,13 @@ class LineString extends Curve
 
     /**
      * @source https://github.com/mjaschen/phpgeo/blob/master/src/Location/Distance/Vincenty.php
-     * @author Marcus Jaschen <mjaschen@gmail.com>
+     * @return float|int|null Length in meters
      * @license https://opensource.org/licenses/GPL-3.0 GPL
      * (note: geoPHP uses "GPL version 2 (or later)" license which is compatible with GPLv3)
      *
-     * @return float Length in meters
+     * @author Marcus Jaschen <mjaschen@gmail.com>
      */
-    public function vincentyLength()
+    public function vincentyLength(): float|int|null
     {
         $length = 0.0;
         $rad = M_PI / 180;
@@ -294,7 +302,7 @@ class LineString extends Curve
         return $length;
     }
 
-    public function minimumZ()
+    public function minimumZ(): float|int|null
     {
         $min = PHP_INT_MAX;
         foreach ($this->getPoints() as $point) {
@@ -305,7 +313,7 @@ class LineString extends Curve
         return $min < PHP_INT_MAX ? $min : null;
     }
 
-    public function maximumZ()
+    public function maximumZ(): float|int|null
     {
         $max = ~PHP_INT_MAX;
         foreach ($this->getPoints() as $point) {
@@ -317,7 +325,7 @@ class LineString extends Curve
         return $max > ~PHP_INT_MAX ? $max : null;
     }
 
-    public function zDifference()
+    public function zDifference(): float|int|null
     {
         if ($this->startPoint()->hasZ() && $this->endPoint()->hasZ()) {
             return abs($this->startPoint()->z() - $this->endPoint()->z());
@@ -335,7 +343,7 @@ class LineString extends Curve
      *
      * @return float
      */
-    public function elevationGain($verticalTolerance = 0)
+    public function elevationGain($verticalTolerance = 0): float
     {
         $gain = 0.0;
         $lastEle = $this->startPoint()->z();
@@ -360,7 +368,7 @@ class LineString extends Curve
      *
      * @return float
      */
-    public function elevationLoss($verticalTolerance = 0)
+    public function elevationLoss($verticalTolerance = 0): float
     {
         $loss = 0.0;
         $lastEle = $this->startPoint()->z();
@@ -376,7 +384,7 @@ class LineString extends Curve
         return $loss;
     }
 
-    public function minimumM()
+    public function minimumM(): float|int|null
     {
         $min = PHP_INT_MAX;
         foreach ($this->getPoints() as $point) {
@@ -387,7 +395,7 @@ class LineString extends Curve
         return $min < PHP_INT_MAX ? $min : null;
     }
 
-    public function maximumM()
+    public function maximumM(): float|int|null
     {
         $max = ~PHP_INT_MAX;
         foreach ($this->getPoints() as $point) {
@@ -405,7 +413,7 @@ class LineString extends Curve
      *
      * @return LineString[]|array[Point]
      */
-    public function explode($toArray = false)
+    public function explode($toArray = false): array
     {
         $points = $this->getPoints();
         $numPoints = count($points);
@@ -425,11 +433,10 @@ class LineString extends Curve
      *
      * @return boolean
      */
-    public function isSimple()
+    public function isSimple(): bool
     {
         if ($this->getGeos()) {
             // @codeCoverageIgnoreStart
-            /** @noinspection PhpUndefinedMethodInspection */
             return $this->getGeos()->isSimple();
             // @codeCoverageIgnoreEnd
         }
@@ -460,7 +467,7 @@ class LineString extends Curve
      * @param LineString $segment
      * @return bool
      */
-    public function lineSegmentIntersect($segment)
+    public function lineSegmentIntersect($segment): bool
     {
         return Geometry::segmentIntersects(
             $this->startPoint(),
@@ -474,11 +481,10 @@ class LineString extends Curve
      * @param Geometry|Collection $geometry
      * @return float|null
      */
-    public function distance($geometry)
+    public function distance($geometry): ?float
     {
         if ($this->getGeos()) {
             // @codeCoverageIgnoreStart
-            /** @noinspection PhpUndefinedMethodInspection */
             return $this->getGeos()->distance($geometry->getGeos());
             // @codeCoverageIgnoreEnd
         }
